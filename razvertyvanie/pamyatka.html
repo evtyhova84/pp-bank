@@ -1,0 +1,529 @@
+<title>Памятка тестировщику</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&family=PT+Sans:ital,wght@0,400;0,700;1,400&family=PT+Mono&display=swap">
+
+<style>
+  /* Палитра снята с банковского бланка: холодная бумага, чернила, синий штамп.
+     Светлая тема — базовая; ниже переопределяются только токены. */
+  :root {
+    --bumaga:      #F6F7FA;
+    --list:        #FFFFFF;
+    --chernila:    #18212C;
+    --tiho:        #5C6A7A;
+    --linija:      #DBE1EA;
+    --linija-tonk: #EAEEF4;
+    --shtamp:      #1F4E9C;
+    --shtamp-svet: #E8EFFA;
+    --vnimanie:    #9A5B08;
+    --vnimanie-fon:#FBF1E0;
+    --ploho:       #A32C2C;
+    --ploho-fon:   #FAE9E9;
+    --horosho:     #1E6B4A;
+    --horosho-fon: #E4F2EB;
+    --ten:         0 1px 2px rgba(24, 33, 44, .06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bumaga:      #11161D;
+      --list:        #161C25;
+      --chernila:    #E3E9F1;
+      --tiho:        #94A2B4;
+      --linija:      #2A3441;
+      --linija-tonk: #1F2833;
+      --shtamp:      #86AEEC;
+      --shtamp-svet: #1B2941;
+      --vnimanie:    #E0A657;
+      --vnimanie-fon:#2C2415;
+      --ploho:       #E88C8C;
+      --ploho-fon:   #2E1B1B;
+      --horosho:     #6FC49E;
+      --horosho-fon: #14291F;
+      --ten:         0 1px 2px rgba(0, 0, 0, .4);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bumaga:      #11161D;
+    --list:        #161C25;
+    --chernila:    #E3E9F1;
+    --tiho:        #94A2B4;
+    --linija:      #2A3441;
+    --linija-tonk: #1F2833;
+    --shtamp:      #86AEEC;
+    --shtamp-svet: #1B2941;
+    --vnimanie:    #E0A657;
+    --vnimanie-fon:#2C2415;
+    --ploho:       #E88C8C;
+    --ploho-fon:   #2E1B1B;
+    --horosho:     #6FC49E;
+    --horosho-fon: #14291F;
+    --ten:         0 1px 2px rgba(0, 0, 0, .4);
+  }
+
+  body {
+    background: var(--bumaga);
+    color: var(--chernila);
+    font: 400 17px/1.6 "PT Sans", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .polosa-lista {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1.1rem, 4vw, 2rem) 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  h1, h2, h3 { font-family: "PT Serif", Georgia, serif; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.18; letter-spacing: -.01em; }
+  h2 { font-size: 1.5rem; line-height: 1.25; }
+  h3 { font-size: 1.08rem; line-height: 1.3; }
+  p  { margin: 0; }
+  a  { color: var(--shtamp); }
+  b, strong { font-weight: 700; }
+
+  .nadpis {
+    font-family: "PT Mono", ui-monospace, monospace;
+    font-size: .72rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--tiho);
+  }
+
+  /* --- шапка --- */
+
+  .shapka { display: flex; flex-direction: column; gap: 1.1rem; }
+
+  .shapka h1 span { color: var(--shtamp); }
+
+  .podzagolovok { font-size: 1.16rem; color: var(--tiho); max-width: 34rem; }
+
+  /* Разлинованное поле бланка 0401060: цифры печатают вразрядку по клеткам.
+     Здесь это подпись под заголовком, а не документ. */
+  .kletki {
+    display: flex;
+    gap: 2px;
+    align-items: stretch;
+    overflow: hidden;
+    height: 1.9rem;
+  }
+  .kletki i {
+    flex: 1 1 1.15rem;
+    min-width: .55rem;
+    background: var(--linija-tonk);
+    border-bottom: 2px solid var(--linija);
+  }
+  .kletki i:nth-child(3n) { background: var(--shtamp-svet); }
+
+  /* --- общие блоки --- */
+
+  section { display: flex; flex-direction: column; gap: 1.15rem; }
+
+  .zametka {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    padding: 1.05rem 1.2rem;
+    border-left: 3px solid var(--shtamp);
+    background: var(--shtamp-svet);
+    border-radius: 0 6px 6px 0;
+  }
+  .zametka.vazhno { border-left-color: var(--vnimanie); background: var(--vnimanie-fon); }
+  .zametka p { font-size: .97rem; }
+
+  /* --- шаги: настоящая последовательность, потому и пронумерованы --- */
+
+  .shagi { display: flex; flex-direction: column; gap: 0; counter-reset: shag; }
+
+  .shag {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr;
+    gap: 0 1rem;
+    padding: 1.1rem 0;
+    border-top: 1px solid var(--linija-tonk);
+    align-items: baseline;
+  }
+  .shag:first-child { border-top: none; padding-top: .4rem; }
+  .shag::before {
+    counter-increment: shag;
+    content: counter(shag, decimal-leading-zero);
+    font-family: "PT Mono", monospace;
+    font-size: .85rem;
+    color: var(--shtamp);
+    letter-spacing: .04em;
+  }
+  .shag > div { display: flex; flex-direction: column; gap: .35rem; }
+  .shag .utochnenie { font-size: .95rem; color: var(--tiho); }
+
+  /* --- пометки --- */
+
+  .pometki { display: flex; flex-direction: column; gap: .7rem; }
+
+  .pometka {
+    display: grid;
+    grid-template-columns: minmax(9.5rem, 12rem) 1fr;
+    gap: .3rem 1.2rem;
+    padding: .95rem 1.1rem;
+    background: var(--list);
+    border: 1px solid var(--linija);
+    border-radius: 7px;
+    box-shadow: var(--ten);
+  }
+  .pometka .metka {
+    justify-self: start;
+    font-family: "PT Mono", monospace;
+    font-size: .78rem;
+    padding: .2rem .5rem;
+    border-radius: 3px;
+    background: var(--vnimanie-fon);
+    color: var(--vnimanie);
+    white-space: nowrap;
+  }
+  .pometka.stop .metka  { background: var(--ploho-fon); color: var(--ploho); }
+  .pometka.spokoyno .metka  { background: var(--horosho-fon); color: var(--horosho); }
+  .pometka .chto { font-size: .95rem; color: var(--tiho); }
+  .pometka .delat { grid-column: 2; font-size: .97rem; }
+  .pometka .delat b { font-weight: 700; }
+
+  @media (max-width: 33rem) {
+    .pometka { grid-template-columns: 1fr; }
+    .pometka .delat { grid-column: 1; }
+  }
+
+  /* --- чек-лист: клетки бланка, отмечаются и запоминаются в браузере --- */
+
+  .spisok { display: flex; flex-direction: column; gap: .1rem; }
+
+  .punkt {
+    display: flex;
+    gap: .8rem;
+    align-items: flex-start;
+    padding: .58rem .3rem;
+    border-bottom: 1px solid var(--linija-tonk);
+    cursor: pointer;
+  }
+  .punkt:last-child { border-bottom: none; }
+  .punkt input {
+    appearance: none;
+    flex: 0 0 auto;
+    width: 1.05rem; height: 1.05rem;
+    margin-top: .28rem;
+    border: 1.5px solid var(--linija);
+    background: var(--list);
+    border-radius: 2px;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+  }
+  .punkt input:checked { border-color: var(--shtamp); background: var(--shtamp); }
+  .punkt input:checked::after {
+    content: "";
+    width: .5rem; height: .28rem;
+    border: 2px solid var(--list);
+    border-top: 0; border-right: 0;
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+  .punkt input:focus-visible { outline: 2px solid var(--shtamp); outline-offset: 2px; }
+  .punkt span { font-size: 1rem; }
+  .punkt input:checked + span { color: var(--tiho); text-decoration: line-through; text-decoration-color: var(--linija); }
+
+  /* --- что писать --- */
+
+  .chto-pisat { display: flex; flex-direction: column; gap: .8rem; }
+  .chto-pisat ol { margin: 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: .35rem; }
+  .chto-pisat li::marker { font-family: "PT Mono", monospace; font-size: .85rem; color: var(--shtamp); }
+
+  .cenno { display: flex; flex-direction: column; gap: .55rem; }
+  .cenno div {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .7rem;
+    align-items: baseline;
+    font-size: .97rem;
+  }
+  .cenno div::before {
+    content: "";
+    width: .42rem; height: .42rem;
+    border-radius: 50%;
+    background: var(--shtamp);
+    transform: translateY(-.15em);
+  }
+  .cenno div.glavnoe::before { background: var(--ploho); }
+
+  /* --- поломки --- */
+
+  .polomki { display: flex; flex-direction: column; gap: .55rem; }
+  .polomka {
+    display: grid;
+    grid-template-columns: minmax(11rem, 15rem) 1fr;
+    gap: .25rem 1.2rem;
+    padding: .7rem 0;
+    border-top: 1px dashed var(--linija);
+    font-size: .97rem;
+  }
+  .polomka b { font-weight: 700; }
+  .polomka span { color: var(--tiho); }
+  @media (max-width: 33rem) { .polomka { grid-template-columns: 1fr; } }
+
+  footer {
+    border-top: 2px solid var(--linija);
+    padding-top: 1.2rem;
+    color: var(--tiho);
+    font-size: .92rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="polosa-lista">
+
+  <header class="shapka">
+    <p class="nadpis">Внутренний тест · сервис «Счета&nbsp;→&nbsp;банк»</p>
+    <h1>Памятка <span>тестировщику</span></h1>
+    <p class="podzagolovok">
+      Программа делает одно: из счетов, которые прислали поставщики, собирает
+      файл платёжных поручений для клиент-банка. Вместо того чтобы набивать
+      каждую платёжку руками.
+    </p>
+    <div class="kletki" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+    <p class="nadpis">Читать целиком не надо — первых двух разделов хватит, чтобы начать</p>
+  </header>
+
+  <section>
+    <h2>Как войти</h2>
+    <p>
+      Адрес, логин и пароль вам прислали отдельно. Адрес начинается с
+      <b>https://</b> — по <b>http://</b> войти не получится, это не сломано,
+      так задумано.
+    </p>
+    <p>Первым делом смените пароль: справа вверху, ваше имя.</p>
+    <div class="zametka">
+      <h3>Программа не отправляет ничего в банк</h3>
+      <p>
+        На выходе — файл, который человек сам загружает в клиент-банк и там же
+        подписывает. Без вас не уйдёт ничего.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Как оплатить пачку счетов</h2>
+    <div class="shagi">
+      <div class="shag"><div>
+        <p><b>Пачки</b> → «Новая пачка».</p>
+      </div></div>
+      <div class="shag"><div>
+        <p>Выберите, <b>с какого счёта платим</b> и <b>дату платежа</b>.</p>
+      </div></div>
+      <div class="shag"><div>
+        <p>Перетащите счета — <b>все сразу</b>, хоть один, хоть сотню.</p>
+        <p class="utochnenie">Годятся PDF, а также снимки и сканы: jpg, png, tif.</p>
+      </div></div>
+      <div class="shag"><div>
+        <p>Дальше можно закрыть страницу: разбор идёт сам.</p>
+        <p class="utochnenie">Вернётесь — увидите готовое.</p>
+      </div></div>
+      <div class="shag"><div>
+        <p>На экране пачки — таблица по всем счетам. Смотрите <b>строки с пометками</b>.</p>
+        <p class="utochnenie">Чистые проверять по одной не нужно.</p>
+      </div></div>
+      <div class="shag"><div>
+        <p>Разберитесь с пометками и нажмите <b>«Сформировать файл»</b>.</p>
+      </div></div>
+      <div class="shag"><div>
+        <p>Скачается один файл <b>1c_to_kl.txt</b> на всю пачку — его и загружайте в клиент-банк.</p>
+      </div></div>
+    </div>
+    <div class="zametka vazhno">
+      <h3>Пока идёт тест — смотрите платёжки в клиент-банке глазами</h3>
+      <p>
+        Формат ещё ни разу не проверялся на живом банке. Первые ошибки ловятся
+        именно так: перед тем как подписать, откройте загруженные платёжки
+        и сверьте суммы и реквизиты.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Пометки: что программа хочет сказать</h2>
+    <div class="pometki">
+
+      <div class="pometka stop">
+        <span class="metka">выставлен не нам</span>
+        <p class="chto">В счёте покупатель — другая организация</p>
+        <p class="delat">
+          Так и есть? Тогда счёт оплачивается с другого плательщика, загрузите
+          его отдельно. Если таких много — программа сама предложит переназначить
+          всю пачку одной кнопкой.
+        </p>
+      </div>
+
+      <div class="pometka">
+        <span class="metka">дубль</span>
+        <p class="chto">Такой счёт уже есть в пачке или уже оплачивался</p>
+        <p class="delat">
+          Если это правда два разных счёта — верните в пачку кнопкой.
+          Решаете вы, программа только показывает совпадение.
+        </p>
+      </div>
+
+      <div class="pometka">
+        <span class="metka">НДС не определён</span>
+        <p class="chto">В счёте про НДС не сказано ни слова</p>
+        <p class="delat">
+          Выберите ставку из списка: «Без НДС», 22, 20, 10, 7, 5 %. Сумма
+          посчитается сама. Ваш выбор запомнится за этим поставщиком.
+        </p>
+      </div>
+
+      <div class="pometka">
+        <span class="metka">не сошлись суммы</span>
+        <p class="chto">Прочитанные числа не бьются между собой</p>
+        <p class="delat">Откройте счёт рядом и сверьте. Обычно это скан похуже.</p>
+      </div>
+
+      <div class="pometka stop">
+        <span class="metka">не принят</span>
+        <p class="chto">Файл тяжелее 25 МБ или пачка вышла за 600 МБ</p>
+        <p class="delat">
+          Платёжки по нему не будет. Пересохраните счёт с меньшим разрешением
+          и загрузите отдельной пачкой.
+        </p>
+      </div>
+
+      <div class="pometka spokoyno">
+        <span class="metka">из справочника</span>
+        <p class="chto">Часть реквизитов взята из прошлых платежей этому получателю</p>
+        <p class="delat">
+          Просто к сведению. Расчётный счёт, ИНН и БИК так <b>не</b> подставляются
+          никогда — только из самого документа.
+        </p>
+      </div>
+
+      <div class="pometka stop">
+        <span class="metka">два счёта у ИНН</span>
+        <p class="chto">У поставщика в базе два разных расчётных счёта</p>
+        <p class="delat">
+          Стоит проверить звонком. «Мы сменили реквизиты, платите на новый
+          счёт» — известная схема обмана.
+        </p>
+      </div>
+
+    </div>
+    <p class="utochnenie" style="color: var(--tiho); font-size: .95rem;">
+      Никакая сумма, ИНН или номер счёта не додумываются: если не прочиталось —
+      программа спросит, а не подставит правдоподобное.
+    </p>
+  </section>
+
+  <section>
+    <h2>Что попробовать сломать</h2>
+    <p>
+      Об этом и тест. Не бойтесь ошибиться: база тестовая, деньги никуда
+      не уходят. Отметки сохраняются в вашем браузере — можно возвращаться.
+    </p>
+    <div class="spisok" id="spisok">
+      <label class="punkt"><input type="checkbox" data-id="p1"><span>Счета от <b>разных поставщиков</b>: 1С, СБИС, Контур, Т-Банк, самозанятые</span></label>
+      <label class="punkt"><input type="checkbox" data-id="p2"><span><b>Фотографии</b> счетов с телефона — криво, с тенью, под углом</span></label>
+      <label class="punkt"><input type="checkbox" data-id="p3"><span><b>Сканы</b>: они читаются хуже PDF, интересно, насколько</span></label>
+      <label class="punkt"><input type="checkbox" data-id="p4"><span>Один и тот же счёт <b>дважды</b></span></label>
+      <label class="punkt"><input type="checkbox" data-id="p5"><span>Счёт <b>на другую организацию</b> в общей пачке</span></label>
+      <label class="punkt"><input type="checkbox" data-id="p6"><span><b>Большую пачку</b> — полсотни счетов за раз</span></label>
+      <label class="punkt"><input type="checkbox" data-id="p7"><span>Счета <b>без НДС</b> и от ИП на УСН</span></label>
+      <label class="punkt"><input type="checkbox" data-id="p8"><span>Странности: счёт на двух страницах, счёт-договор, счёт с длинной таблицей</span></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Что писать в замечаниях</h2>
+    <div class="chto-pisat">
+      <p>Полезное замечание — это:</p>
+      <ol>
+        <li>что делали («загрузила 12 счетов, из них 3 фото»);</li>
+        <li>что ожидали;</li>
+        <li>что получилось;</li>
+        <li><b>сам счёт</b> — файл или снимок экрана. Без него разобраться почти нельзя.</li>
+      </ol>
+    </div>
+    <h3>Особенно ценно</h3>
+    <div class="cenno">
+      <div class="glavnoe"><span><b>Прочитано неверно, но пометки не было</b> — самое важное из всего: программа была уверена и ошиблась.</span></div>
+      <div><span>Сумма, ИНН или номер счёта разошлись с документом.</span></div>
+      <div><span>Банк не принял файл — приложите <b>текст ошибки банка целиком</b>.</span></div>
+      <div><span>«Непонятно, что делать на этом экране» — это тоже замечание, а не ваша вина.</span></div>
+    </div>
+    <p style="font-size: .97rem; color: var(--tiho);">
+      Мелкие неудобства — «долго грузится», «кнопку не видно» — тоже пишите.
+      Тест затем и нужен.
+    </p>
+  </section>
+
+  <section>
+    <h2>Если что-то не работает</h2>
+    <div class="polomki">
+      <div class="polomka">
+        <b>Страница не открывается</b>
+        <span>Напишите тому, кто выдал доступ: чинится на сервере, не у вас.</span>
+      </div>
+      <div class="polomka">
+        <b>Не пускает по кругу</b>
+        <span>Проверьте, что в адресе https://, и попробуйте другой браузер.</span>
+      </div>
+      <div class="polomka">
+        <b>Разбор долго идёт</b>
+        <span>На сотне сканов это минуты. Страницу можно закрыть и вернуться.</span>
+      </div>
+      <div class="polomka">
+        <b>Что-то испортили в справочнике</b>
+        <span>Не страшно, скажите администратору.</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>Логином и паролем не делитесь.</b> В журнале видно, кто что делал, и чужие действия окажутся вашими.</p>
+    <p class="nadpis">Памятка на время внешнего теста</p>
+  </footer>
+
+</div>
+
+<script>
+  // Отметки чек-листа — удобство для одного читателя, живут в его браузере.
+  // Хранилище может быть недоступно (приватное окно, запрет на данные сайтов),
+  // поэтому каждое обращение под try: страница обязана работать и без него.
+  (function () {
+    var KLYUCH = "pamyatka-otmetki";
+    var polya = document.querySelectorAll("#spisok input[type=checkbox]");
+    var sohranyonnoe = {};
+
+    try {
+      sohranyonnoe = JSON.parse(localStorage.getItem(KLYUCH) || "{}") || {};
+    } catch (e) {
+      sohranyonnoe = {};
+    }
+
+    polya.forEach(function (pole) {
+      if (sohranyonnoe[pole.dataset.id]) pole.checked = true;
+      pole.addEventListener("change", function () {
+        sohranyonnoe[pole.dataset.id] = pole.checked;
+        try {
+          localStorage.setItem(KLYUCH, JSON.stringify(sohranyonnoe));
+        } catch (e) {
+          /* не сохранилось — не беда, читать памятку это не мешает */
+        }
+      });
+    });
+  })();
+</script>
