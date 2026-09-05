@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block zagolovok %}Журнал{% endblock %}
+{% block soderzhimoe %}
+<h1>Журнал выгрузок</h1>
+<p class="tiho">Речь о платежах, поэтому пишется всё: кто, когда, какие номера
+платёжек и на какую сумму ушли в банк.</p>
+
+{% if vygruzki %}
+<table>
+  <thead><tr><th>Когда</th><th>Пачка</th><th>Плательщик</th><th>Платёжек</th>
+    <th>Номера</th><th>Сумма</th><th>Кто</th><th>Файл</th></tr></thead>
+  <tbody>
+  {% for v in vygruzki %}
+  <tr>
+    <td>{{ v.created_at[:16].replace('T', ' ') }}</td>
+    <td class="chislo"><a href="/pachki/{{ v.batch_id }}">№ {{ v.batch_id }}</a></td>
+    <td>{{ v.payer_name }}</td>
+    <td class="chislo">{{ v.kolichestvo }}</td>
+    <td class="chislo">{{ v.diapazon }}</td>
+    <td class="chislo">{{ v.amount }}</td>
+    <td class="tiho">{{ v.avtor }}</td>
+    <td><a href="/pachki/{{ v.batch_id }}/fayl">скачать</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="tiho">Выгрузок ещё не было.</p>
+{% endif %}
+
+<h2>Действия</h2>
+<table>
+  <thead><tr><th>Когда</th><th>Кто</th><th>Что</th><th>Подробности</th></tr></thead>
+  <tbody>
+  {% for d in deystviya %}
+  <tr>
+    <td>{{ d.at[:16].replace('T', ' ') }}</td>
+    <td class="tiho">{{ d.login or '—' }}</td>
+    <td>{{ d.action }}</td>
+    <td class="tiho">{{ d.detail }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

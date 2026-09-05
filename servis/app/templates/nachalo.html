@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block zagolovok %}Первый запуск{% endblock %}
+{% block soderzhimoe %}
+<div class="vhod">
+  <h1>Счета&nbsp;→&nbsp;банк</h1>
+  <p class="tiho">Первый запуск. Заведите себя — дальше сотрудников можно
+  добавлять прямо в программе.</p>
+
+  {% if oshibka %}<p class="oshibka">{{ oshibka }}</p>{% endif %}
+
+  <form method="post" action="/nachalo">
+    <label>Как вас зовут
+      <input name="imya" value="{{ znacheniya.get('imya', '') }}" autofocus
+             placeholder="Анна Иванова">
+    </label>
+    <label>Логин
+      <input name="login" value="{{ znacheniya.get('login', '') }}"
+             autocomplete="username" required placeholder="anna">
+    </label>
+    <label>Пароль
+      <input name="parol" type="password" autocomplete="new-password" required>
+    </label>
+    <label>Пароль ещё раз
+      <input name="parol2" type="password" autocomplete="new-password" required>
+    </label>
+    <button type="submit">Начать работу</button>
+  </form>
+
+  <p class="tiho">Пароль — от 8 знаков. Организации, за которые вы платите,
+  заводить сейчас не нужно: их вы выберете позже, когда будете делать платёжки.</p>
+</div>
+{% endblock %}

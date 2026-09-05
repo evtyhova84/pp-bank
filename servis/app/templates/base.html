@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block zagolovok %}Счета в банк{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{% if polzovatel %}
+<header class="shapka">
+  <a class="logo" href="/pachki">Счета&nbsp;→&nbsp;банк</a>
+  <nav>
+    <a href="/pachki">Пачки</a>
+    <a href="/platelshchiki">Плательщики</a>
+    <a href="/poluchateli">Получатели</a>
+    {% if polzovatel.role == 'admin' %}<a href="/sotrudniki">Сотрудники</a>{% endif %}
+    <a href="/zhurnal">Журнал</a>
+  </nav>
+  <div class="kto">
+    <span title="{{ 'Администратор' if polzovatel.role == 'admin' else 'Оператор' }}">{{ polzovatel.full_name or polzovatel.login }}</span>
+    <form method="post" action="/vyhod"><button class="prosto">выйти</button></form>
+  </div>
+</header>
+{% endif %}
+
+<main>
+{% block soderzhimoe %}{% endblock %}
+</main>
+</body>
+</html>

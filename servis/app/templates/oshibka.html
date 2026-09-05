@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block zagolovok %}{{ zagolovok }}{% endblock %}
+{% block soderzhimoe %}
+<h1>{{ zagolovok }}</h1>
+<p>Файл для банка не сформирован — реквизиты не прошли проверку.
+Ни одна платёжка не записана, номера не выданы.</p>
+<ul class="problemy">
+  {% for p in problemy %}<li>{{ p }}</li>{% endfor %}
+</ul>
+<p><a class="knopka" href="/pachki/{{ pachka_id }}">Вернуться к пачке</a></p>
+{% endblock %}

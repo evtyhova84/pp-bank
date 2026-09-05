@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block zagolovok %}Плательщики{% endblock %}
+{% block soderzhimoe %}
+<h1>Плательщики</h1>
+<p class="tiho">Организации, от чьего имени платим. У организации может быть
+несколько расчётных счетов — при загрузке счетов выбирается, с какого платить.
+Нумерация платёжек у каждого счёта своя.</p>
+
+{% for p in spisok %}
+<section class="schet {% if not p.active %}vyklyuchen{% endif %}">
+  <header>
+    <div>
+      <b>{{ p.name }}</b>
+      <span class="tiho">· ИНН {{ p.inn }}{% if p.kpp %} · КПП {{ p.kpp }}{% endif %}
+      · код {{ p.code }}</span>
+    </div>
+    {% if polzovatel.role == 'admin' %}
+    <form method="post" action="/platelshchiki/{{ p.id }}/perekluchit">
+      <input type="hidden" name="token" value="{{ token }}">
+      <button class="prosto">{{ 'отключить' if p.active else 'включить' }}</button>
+    </form>
+    {% endif %}
+  </header>
+
+  <table>
+    <thead><tr><th>Счёт</th><th>Расчётный счёт</th><th>Банк</th><th>Нумерация с</th><th></th></tr></thead>
+    <tbody>
+    {% for s in p.scheta %}
+      <tr class="{% if not s.active %}vyklyuchen{% endif %}">
+        <td>{{ s.metka or '—' }}</td>
+        <td class="chislo">{{ s.account }}</td>
+        <td>{{ s.bank_name }}<div class="tiho">БИК {{ s.bic }}</div></td>
+        <td class="chislo">{{ s.numbering_start }}</td>
+        <td>
+          {% if polzovatel.role == 'admin' %}
+          <form method="post" action="/scheta/{{ s.id }}/perekluchit">
+            <input type="hidden" name="token" value="{{ token }}">
+            <button class="prosto">{{ 'отключить' if s.active else 'включить' }}</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="tiho">Ни одного счёта — платить не с чего.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  {% if polzovatel.role == 'admin' %}
+  <details>
+    <summary class="tiho">добавить ещё один расчётный счёт</summary>
+    <form method="post" action="/platelshchiki/{{ p.id }}/schet" class="forma polya">
+      <input type="hidden" name="token" value="{{ token }}">
+      {% for pole, podpis in polya_scheta %}
+      <label>{{ podpis }}<input name="{{ pole }}"
+        {% if pole in obyazatelnye %}required{% endif %}></label>
+      {% endfor %}
+      <label>Начальный номер платёжек<input name="numbering_start" value="900001"></label>
+      <div class="knopki"><button type="submit">Добавить счёт</button></div>
+    </form>
+  </details>
+  {% endif %}
+</section>
+{% else %}
+<p class="tiho">Пока ни одного плательщика.</p>
+{% endfor %}
+
+{% if polzovatel.role == 'admin' %}
+<h2 id="dobavit">Добавить организацию</h2>
+
+<form method="post" action="/platelshchiki/iz-platezhki" enctype="multipart/form-data" class="vryad">
+  <input type="hidden" name="token" value="{{ token }}">
+  <label>Заполнить из своего документа
+    <input type="file" name="fayl" required
+           accept=".txt,.pdf,.jpg,.jpeg,.png,.tif,.tiff">
+  </label>
+  <button class="prosto">прочитать реквизиты</button>
+</form>
+<p class="tiho">Подойдёт <b>платёжка</b> (PDF или снимок), <b>выписка</b> или
+<b>файл выгрузки</b> в клиент-банк (<code>1c_to_kl.txt</code>, <code>kl_to_1c.txt</code>) —
+из них берутся все реквизиты. Подойдёт и <b>счёт</b>, выставленный на вашу
+организацию, но из него читаются только наименование, ИНН и КПП: банковских
+реквизитов плательщика в счёте не печатают. Что прочиталось — подставится
+в форму ниже, сверьте и сохраните. Двадцатизначные счета руками лучше не набирать.</p>
+
+{% if soobshchenie %}<p class="zametka">{{ soobshchenie }}</p>{% endif %}
+{% if drugaya %}
+<form method="post" action="/platelshchiki/storona" class="vryad">
+  <input type="hidden" name="token" value="{{ token }}">
+  {% for pole in polya_storony %}
+  <input type="hidden" name="vybor_{{ pole }}" value="{{ drugaya.get(pole, '') }}">
+  <input type="hidden" name="drugaya_{{ pole }}" value="{{ znacheniya.get(pole, '') }}">
+  {% endfor %}
+  <button class="prosto">Это не мы — взять {% if drugaya.get('_storona') == 'получатель' %}получателя{% elif drugaya.get('_storona') == 'плательщик' %}плательщика{% else %}другую сторону{% endif %}: {{ drugaya.get('name') or drugaya.get('inn') }}</button>
+</form>
+{% endif %}
+{% if oshibki %}
+<ul class="problemy">{% for o in oshibki %}<li>{{ o }}</li>{% endfor %}</ul>
+{% endif %}
+
+{% if prochitano %}
+<details>
+  <summary class="tiho">что программа прочитала в документе ({{ prochitano|length }} строк)</summary>
+  <pre class="vypiska">{% for s in prochitano %}{{ s }}
+{% endfor %}</pre>
+  <p class="tiho">Если реквизиты здесь видны, а в форму не попали — пришлите
+  этот текст разработчику: по нему видно, за что разбор зацепился.</p>
+</details>
+{% endif %}
+
+<form method="post" action="/platelshchiki" class="forma polya">
+  <input type="hidden" name="token" value="{{ token }}">
+  {% if znacheniya.get('pachka') %}<input type="hidden" name="pachka" value="{{ znacheniya.pachka }}">{% endif %}
+  {% for pole, podpis in polya_organizatsii %}
+  <label>{{ podpis }}<input name="{{ pole }}" value="{{ znacheniya.get(pole, '') }}"
+    {% if pole in obyazatelnye %}required{% endif %}></label>
+  {% endfor %}
+  {% for pole, podpis in polya_scheta %}
+  <label>{{ podpis }}<input name="{{ pole }}" value="{{ znacheniya.get(pole, '') }}"
+    {% if pole in obyazatelnye %}required{% endif %}></label>
+  {% endfor %}
+  <label>Начальный номер платёжек
+    <input name="numbering_start" value="{{ znacheniya.get('numbering_start', 900001) }}">
+  </label>
+  <div class="knopki"><button type="submit">Сохранить</button></div>
+</form>
+<p class="tiho">Начальный номер — верхний диапазон, чтобы не пересечься с собственной
+нумерацией платёжек в 1С. По умолчанию 900001.</p>
+{% endif %}
+{% endblock %}

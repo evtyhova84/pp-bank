@@ -1,0 +1,14 @@
+{
+  "name": "default",
+  "format_version": "1.02",
+  "encoding": "Windows",
+  "sender": "scheta-platezhki",
+  "receiver": "",
+  "emit_empty_fields": false,
+  "uin_when_absent": "0",
+  "purpose_max_length": 210,
+  "payment_kind": "",
+  "payment_type": "01",
+  "priority": "5",
+  "duplicate_purpose_line": true
+}

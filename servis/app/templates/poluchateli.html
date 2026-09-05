@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block zagolovok %}Получатели{% endblock %}
+{% block soderzhimoe %}
+<h1>Получатели</h1>
+<p class="tiho">Кому вы платите. Справочник набирается сам из разобранных счетов —
+заводить никого не нужно. Если со скана не прочиталось поле, а этому получателю
+уже платили, оно берётся отсюда: расчётный счёт и ИНН — никогда, только то,
+что деньги не адресует.</p>
+
+{% if dvoyniki %}
+<p class="zametka">У некоторых контрагентов в справочнике больше одного расчётного
+счёта — такие строки помечены. Обычно это законно, но если счёт сменился недавно
+и без предупреждения, это стоит проверить звонком, а не письмом.</p>
+{% endif %}
+
+{% if spisok %}
+<table>
+  <thead>
+    <tr>
+      <th>Получатель</th><th>ИНН / КПП</th><th>Расчётный счёт</th><th>Банк</th>
+      <th>Счетов</th><th>Оплачено</th><th>Последний раз</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for p in spisok %}
+    <tr>
+      <td>{{ p.name or p.full_name or '—' }}
+        {% if p.inn in dvoyniki %}<div class="metka vnimanie">не один счёт</div>{% endif %}
+      </td>
+      <td class="chislo">{{ p.inn }}{% if p.kpp %}<div class="tiho">{{ p.kpp }}</div>{% endif %}</td>
+      <td class="chislo">{{ p.account }}</td>
+      <td>{{ p.bank_name }}{% if p.bic %}<div class="tiho">БИК {{ p.bic }}</div>{% endif %}</td>
+      <td class="chislo">{{ p.schetov }}</td>
+      <td class="chislo">{{ p.platezhey }}</td>
+      <td class="tiho">{{ p.last_at[:10] }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="tiho">Пока пусто. Загрузите первую пачку счетов — получатели появятся здесь сами.</p>
+{% endif %}
+{% endblock %}

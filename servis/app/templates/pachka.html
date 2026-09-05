@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block zagolovok %}Пачка № {{ pachka.id }}{% endblock %}
+{% block soderzhimoe %}
+
+{% if zhdyom %}<meta http-equiv="refresh" content="3">{% endif %}
+
+<div class="polosa">
+  <h1>Пачка № {{ pachka.id }} · документов: {{ docs|length }}</h1>
+  <a href="/pachki" class="tiho">ко всем пачкам</a>
+</div>
+
+<p class="tiho">
+  Плательщик: <b>{{ pachka.payer_name }}</b>{% if pachka.payer_account %}
+  · счёт {{ pachka.payer_metka or pachka.payer_bank }} ({{ pachka.payer_account }}){% endif %} ·
+  дата платёжек: {{ pachka.payment_date }} ·
+  загрузил: {{ pachka.avtor or pachka.avtor_login }}
+</p>
+
+{% if pachka.status == 'exported' %}
+<div class="itog horosho">
+  <div>
+    <b>Готов один файл на всю пачку. Платёжек в нём: {{ gotovo }}.</b>
+    <p class="tiho">Загрузите его в клиент-банк как «импорт из 1С» ({{ pachka.out_name }}).</p>
+  </div>
+  <a class="knopka" href="/pachki/{{ pachka.id }}/fayl">Скачать файл</a>
+</div>
+{% elif zhdyom %}
+<div class="itog zhdyom">
+  <div><b>Распознаём: {{ razobrano }} из {{ docs|length }}</b>
+  <p class="tiho">Страница обновится сама, ждать её не обязательно —
+  можно закрыть и вернуться позже.</p></div>
+</div>
+{% else %}
+<div class="itog {% if gotovo %}horosho{% else %}vnimanie{% endif %}">
+  <div>
+    <b>Платёжек к выгрузке: {{ gotovo }}</b> на сумму {{ summa }} ₽
+    <p class="tiho">
+      Получится <b>один файл</b> на всю пачку — по платёжке на каждый счёт.
+      {% if trebuyut %}Требуют проверки: {{ trebuyut }} — в файл не попадут.{% endif %}
+      {% if isklyucheno %}Исключено (вручную или как дубль): {{ isklyucheno }}.{% endif %}
+    </p>
+  </div>
+  {% if gotovo %}
+  <form method="post" action="/pachki/{{ pachka.id }}/vygruzka">
+    <input type="hidden" name="token" value="{{ token }}">
+    <button type="submit">Сформировать файл для банка</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if ne_prinyato %}
+<div class="itog vnimanie">
+  <div>
+    <b>Не принято файлов: {{ ne_prinyato }}.</b>
+    <p class="tiho">
+      Они в списке ниже, с пометкой «не принят» и объяснением. Платёжек по ним
+      не будет — если эти счета нужно оплатить, пересохраните их полегче
+      и загрузите отдельной пачкой.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+{% if pokupatel %}
+<div class="itog vnimanie">
+  <div>
+    <b>Счета выставлены не на этого плательщика.</b>
+    <p class="tiho">
+      Из {{ pokupatel.vsego }} разобранных счетов {{ pokupatel.skolko }} выставлены на
+      <b>{{ pokupatel.name or 'организацию' }}</b> (ИНН {{ pokupatel.inn }}{% if pokupatel.kpp %},
+      КПП {{ pokupatel.kpp }}{% endif %}), а пачка загружена под плательщиком
+      «{{ pachka.payer_name }}». Такие счета в файл не попадут.
+      {% if pokupatel.payer and pokupatel.scheta %}
+      Переназначить пачку можно одной кнопкой — счета будут разобраны заново.
+      {% elif pokupatel.payer %}
+      Плательщик «{{ pokupatel.payer.name }}» заведён, но у него нет ни одного
+      включённого расчётного счёта — <a href="/platelshchiki">добавьте счёт</a>.
+      {% elif polzovatel.role == 'admin' %}
+      Такого плательщика в справочнике ещё нет: заведите его — наименование, ИНН и КПП
+      уже заполнены, останется дописать банковские реквизиты.
+      {% else %}
+      Такого плательщика в справочнике ещё нет — попросите администратора завести
+      «{{ pokupatel.name or pokupatel.inn }}», после этого пачку можно будет переназначить.
+      {% endif %}
+    </p>
+  </div>
+  {% if pokupatel.payer and pokupatel.scheta %}
+  <form method="post" action="/pachki/{{ pachka.id }}/perenaznachit" class="pereznaznachit">
+    <input type="hidden" name="token" value="{{ token }}">
+    {% if pokupatel.scheta|length == 1 %}
+    <input type="hidden" name="schet_id" value="{{ pokupatel.scheta[0].id }}">
+    {% else %}
+    <select name="schet_id">
+      {% for s in pokupatel.scheta %}
+      <option value="{{ s.id }}">{{ s.metka or s.bank_name }} ({{ s.account }})</option>
+      {% endfor %}
+    </select>
+    {% endif %}
+    <button type="submit">Переназначить пачку на {{ pokupatel.payer.name }}</button>
+  </form>
+  {% elif not pokupatel.payer and polzovatel.role == 'admin' %}
+  <a class="knopka" href="/platelshchiki?inn={{ pokupatel.inn|urlencode }}&kpp={{ pokupatel.kpp|urlencode }}&name={{ pokupatel.name|urlencode }}&pachka={{ pachka.id }}#dobavit">Завести {{ pokupatel.name or 'плательщика' }}</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if not zhdyom and docs %}
+<h2>Все счета пачки</h2>
+<table>
+  <thead>
+    <tr><th></th><th>Получатель</th><th>Счёт №</th><th>Дата</th><th>Сумма</th><th>Файл</th></tr>
+  </thead>
+  <tbody>
+  {% for doc in docs %}
+    <tr class="{% if not doc.included %}vyklyuchen{% endif %}">
+      <td>
+        {% if doc.status == 'ok' and doc.included %}<span class="metka horosho">в файл</span>
+        {% elif doc.status == 'ok' %}<span class="metka">исключён</span>
+        {% elif doc.status == 'failed' %}<span class="metka ploho">не прочитан</span>
+        {% elif doc.status == 'skipped' %}<span class="metka ploho">не принят</span>
+        {% else %}<span class="metka vnimanie">проверить</span>{% endif %}
+      </td>
+      <td>{{ doc.data.get('recipient_name') or '—' }}</td>
+      <td class="chislo">{{ doc.data.get('invoice_number') or '—' }}</td>
+      <td class="chislo">{{ doc.data.get('invoice_date') or '—' }}</td>
+      <td class="chislo">{{ doc.data.get('total_amount') or '—' }}</td>
+      <td><a href="#doc{{ doc.id }}" class="tiho">{{ doc.filename[:28] }}</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<h2>Разбор по счетам</h2>
+{% for doc in docs %}
+<section class="schet {{ doc.status }}{% if not doc.included %} vyklyuchen{% endif %}" id="doc{{ doc.id }}">
+  <header>
+    <div>
+      <span class="metka {% if doc.status == 'ok' %}horosho{% elif doc.status == 'pending' %}zhdyom{% else %}ploho{% endif %}">
+        {% if doc.status == 'ok' %}готов
+        {% elif doc.status == 'pending' %}распознаётся
+        {% elif doc.status == 'failed' %}не прочитан
+        {% elif doc.status == 'skipped' %}не принят
+        {% else %}нужна проверка{% endif %}
+      </span>
+      {% if doc.status == 'skipped' %}<span>{{ doc.filename }}</span>
+      {% else %}<a href="/pachki/{{ pachka.id }}/dokument/{{ doc.id }}/ishodnik" target="_blank">{{ doc.filename }}</a>{% endif %}
+      {% if doc.engine %}<span class="tiho">· {{ doc.engine }}</span>{% endif %}
+      {% if doc.edited %}<span class="tiho">· поправлено вручную</span>{% endif %}
+    </div>
+    {% if pachka.status != 'exported' and doc.status not in ('pending', 'skipped') %}
+    <form method="post" action="/pachki/{{ pachka.id }}/dokument/{{ doc.id }}">
+      <input type="hidden" name="token" value="{{ token }}">
+      <input type="hidden" name="deystvie" value="{{ 'isklyuchit' if doc.included else 'vklyuchit' }}">
+      <button class="prosto">{{ 'исключить из пачки' if doc.included else 'вернуть в пачку' }}</button>
+    </form>
+    {% endif %}
+  </header>
+
+  {% if doc.problems %}
+  <ul class="problemy">
+    {% for p in doc.problems %}<li>{{ p }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if doc.data %}
+  {# Чистые счета сворачиваем: в пачке на сотню документов открытые формы
+     превращают экран в бесконечную ленту, а смотреть надо проблемные. #}
+  <details {% if doc.status != 'ok' or not doc.included %}open{% endif %}>
+    <summary class="tiho">
+      {{ doc.data.get('recipient_name') or 'реквизиты' }} ·
+      {{ doc.data.get('total_amount') or '?' }} ₽ — показать поля
+    </summary>
+    <form method="post" action="/pachki/{{ pachka.id }}/dokument/{{ doc.id }}" class="polya">
+      <input type="hidden" name="token" value="{{ token }}">
+      <input type="hidden" name="deystvie" value="sohranit">
+      {% for pole in polya %}
+      {% if pole == 'vat_rate' %}
+      <label>{{ podpisi[pole] }}
+        <select name="vat_rate" {% if pachka.status == 'exported' %}disabled{% endif %}>
+          <option value="" {% if not doc.nds %}selected{% endif %}>— не определено —</option>
+          <option value="{{ bez_nds }}" {% if doc.nds == bez_nds %}selected{% endif %}>Без НДС</option>
+          {% for stavka in stavki %}
+          <option value="{{ stavka }}" {% if doc.nds == stavka %}selected{% endif %}>{{ stavka }} %</option>
+          {% endfor %}
+          {% if doc.nds and doc.nds != bez_nds and doc.nds not in stavki %}
+          <option value="{{ doc.nds }}" selected>{{ doc.nds }} %</option>
+          {% endif %}
+        </select>
+      </label>
+      {% elif pole == 'payment_description' %}
+      <label class="shiroko">{{ podpisi[pole] }}
+        <input name="{{ pole }}" value="{{ doc.data.get(pole) or '' }}"
+               placeholder="позиции через «;» — ужмётся в назначение само"
+               {% if pachka.status == 'exported' %}readonly{% endif %}>
+      </label>
+      {% else %}
+      <label>{{ podpisi[pole] }}
+        <input name="{{ pole }}" value="{{ doc.data.get(pole) or '' }}"
+               {% if pachka.status == 'exported' %}readonly{% endif %}>
+      </label>
+      {% endif %}
+      {% endfor %}
+      {% if doc.naznachenie %}
+      <p class="naznachenie shiroko">
+        <span class="tiho">Назначение платежа ({{ doc.naznachenie|length }} из {{ predel_naznacheniya }} знаков):</span><br>
+        {{ doc.naznachenie }}
+      </p>
+      {% endif %}
+      {% if pachka.status != 'exported' %}
+      <div class="knopki"><button type="submit">Сохранить и проверить</button></div>
+      {% endif %}
+    </form>
+  </details>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

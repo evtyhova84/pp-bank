@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block zagolovok %}Пачки счетов{% endblock %}
+{% block soderzhimoe %}
+<div class="polosa">
+  <h1>Пачки счетов</h1>
+  <a class="knopka" href="/pachki/nova">Загрузить счета</a>
+</div>
+
+{% if not pachki %}
+<p class="tiho">Пока ничего не загружено. Нажмите «Загрузить счета» — можно выбрать
+сразу несколько PDF, сканов или фотографий.</p>
+{% else %}
+<table>
+  <thead>
+    <tr>
+      <th>№</th><th>Создана</th><th>Плательщик</th><th>Счетов</th>
+      <th>Состояние</th><th>Кто</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for p in pachki %}
+    <tr>
+      <td class="chislo">{{ p.id }}</td>
+      <td>{{ p.created_at[:16].replace('T', ' ') }}</td>
+      <td>{{ p.payer_name }}</td>
+      <td class="chislo">{{ p.chisto }} из {{ p.vsego }}</td>
+      <td>
+        {% if p.status == 'processing' %}<span class="metka zhdyom">распознаётся</span>
+        {% elif p.status == 'exported' %}<span class="metka horosho">выгружена</span>
+        {% else %}<span class="metka vnimanie">на проверке</span>{% endif %}
+      </td>
+      <td class="tiho">{{ p.avtor or p.avtor_login }}</td>
+      <td><a href="/pachki/{{ p.id }}">открыть</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

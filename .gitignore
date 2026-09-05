@@ -1,0 +1,26 @@
+# Рабочие данные сервиса: база, загруженные счета, выгрузки, ключ подписи форм.
+# Здесь живые реквизиты и платежи — в репозиторий они не идут.
+servis/dannye/
+kopii/
+
+# Входящие счета и готовые выгрузки — тоже настоящие документы
+2-raspoznavanie/scheta/
+1-vygruzka-v-bank/platezhki/
+
+# Реквизиты конкретных организаций — данные, а не код
+spravochniki/platelshchik-*.json
+
+# Рабочий Caddyfile: в нём подставлен настоящий домен.
+# В репозитории лежит образец — Caddyfile.obrazets
+razvertyvanie/Caddyfile
+razvertyvanie/zhurnal-dostupa.log
+
+# Питон
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Windows
+Thumbs.db
+desktop.ini

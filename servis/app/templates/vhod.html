@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block zagolovok %}Вход{% endblock %}
+{% block soderzhimoe %}
+<div class="vhod">
+  <h1>Счета&nbsp;→&nbsp;банк</h1>
+  <p class="tiho">Загрузите счета — получите файл платёжных поручений для клиент-банка.</p>
+
+  {% if oshibka %}<p class="oshibka">{{ oshibka }}</p>{% endif %}
+
+  <form method="post" action="/vhod">
+    <label>Логин<input name="login" autocomplete="username" autofocus required></label>
+    <label>Пароль<input name="parol" type="password" autocomplete="current-password" required></label>
+    <button type="submit">Войти</button>
+  </form>
+</div>
+{% endblock %}

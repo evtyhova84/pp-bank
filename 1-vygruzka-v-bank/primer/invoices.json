@@ -1,0 +1,32 @@
+[
+  {
+    "invoice_number": "1274",
+    "invoice_date": "2026-08-20",
+    "recipient_name": "ООО Прогресс Парк",
+    "recipient_full": "Общество с ограниченной ответственностью \"Прогресс Парк\"",
+    "recipient_inn": "7701325465",
+    "recipient_kpp": "770101001",
+    "recipient_account": "40702810123111111114",
+    "recipient_bank_name": "ПАО БАНК ПЕТРОКОММЕРЦ",
+    "recipient_bank_city": "Г. МОСКВА",
+    "recipient_bic": "044525352",
+    "recipient_corr_account": "30101810700000000352",
+    "total_amount": "12 354,00",
+    "vat_rate": "20",
+    "vat_amount": "2059.00"
+  },
+  {
+    "invoice_number": "СЧ-0087",
+    "invoice_date": "2026-08-22",
+    "recipient_name": "ООО Василек",
+    "recipient_inn": "7701107259",
+    "recipient_account": "40702810123111111114",
+    "recipient_bank_name": "ПАО БАНК ПЕТРОКОММЕРЦ",
+    "recipient_bank_city": "Г. МОСКВА",
+    "recipient_bic": "044525352",
+    "recipient_corr_account": "30101810700000000352",
+    "total_amount": "5000.00",
+    "vat_rate": null,
+    "vat_amount": null
+  }
+]

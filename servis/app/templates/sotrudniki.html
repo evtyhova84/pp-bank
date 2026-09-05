@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block zagolovok %}Сотрудники{% endblock %}
+{% block soderzhimoe %}
+<h1>Сотрудники</h1>
+<p class="tiho">Оператор загружает счета и формирует файл. Администратор — то же самое
+плюс справочники и сотрудники.</p>
+
+<table>
+  <thead><tr><th>Логин</th><th>Имя</th><th>Роль</th><th>Состояние</th><th>Пароль</th><th></th></tr></thead>
+  <tbody>
+  {% for u in spisok %}
+  <tr class="{% if not u.active %}vyklyuchen{% endif %}">
+    <td>{{ u.login }}</td>
+    <td>{{ u.full_name }}</td>
+    <td>{{ 'администратор' if u.role == 'admin' else 'оператор' }}</td>
+    <td>{{ 'работает' if u.active else 'отключён' }}</td>
+    <td>
+      <form method="post" action="/sotrudniki/{{ u.id }}/parol" class="vryad">
+        <input type="hidden" name="token" value="{{ token }}">
+        <input name="parol" type="password" placeholder="новый пароль" required>
+        <button class="prosto">сменить</button>
+      </form>
+    </td>
+    <td>
+      {% if u.id != polzovatel.id %}
+      <form method="post" action="/sotrudniki/{{ u.id }}/perekluchit">
+        <input type="hidden" name="token" value="{{ token }}">
+        <button class="prosto">{{ 'отключить' if u.active else 'включить' }}</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2>Добавить сотрудника</h2>
+{% if oshibka %}<p class="oshibka">{{ oshibka }}</p>{% endif %}
+<form method="post" action="/sotrudniki" class="forma polya">
+  <input type="hidden" name="token" value="{{ token }}">
+  <label>Логин<input name="login" required></label>
+  <label>Имя<input name="imya"></label>
+  <label>Пароль<input name="parol" type="password" required minlength="8"></label>
+  <label>Роль
+    <select name="rol">
+      <option value="operator">оператор</option>
+      <option value="admin">администратор</option>
+    </select>
+  </label>
+  <div class="knopki"><button type="submit">Добавить</button></div>
+</form>
+{% endblock %}

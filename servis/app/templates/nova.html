@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block zagolovok %}Загрузка счетов{% endblock %}
+{% block soderzhimoe %}
+<h1>Загрузить счета</h1>
+
+{% if not scheta %}
+<p class="oshibka">
+  Не заведён ни один расчётный счёт плательщика. Пока нет реквизитов организации,
+  с чьего счёта уходят деньги, платёжку сформировать не из чего —
+  <a href="/platelshchiki">заполните справочник</a>.
+</p>
+{% else %}
+<form method="post" action="/pachki/nova" enctype="multipart/form-data" class="forma">
+  <input type="hidden" name="token" value="{{ token }}">
+
+  <label>С какого счёта платим
+    <select name="schet_id" required>
+      {% for s in scheta %}
+      <option value="{{ s.id }}">{{ s.payer_name }} — {{ s.metka or s.bank_name }}
+        ({{ s.account }})</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Дата платёжных поручений
+    <input type="date" name="data_platezha" value="{{ segodnya }}" required>
+  </label>
+
+  <label>Счета от поставщиков
+    <input type="file" name="fayly" multiple required
+           accept=".pdf,.jpg,.jpeg,.png,.bmp,.tif,.tiff,.webp">
+  </label>
+  <p class="tiho">PDF, сканы и фотографии. Можно выбрать сразу несколько файлов,
+  до 100 в одной пачке.</p>
+
+  <button type="submit">Загрузить и распознать</button>
+</form>
+{% endif %}
+{% endblock %}
