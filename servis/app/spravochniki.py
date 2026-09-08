@@ -523,6 +523,41 @@ def perekluchit_sotrudnika(
     return veb.tuda("/sotrudniki")
 
 
+@router.post("/sotrudniki/{user_id}/rol")
+def smenit_rol(
+    request: Request,
+    user_id: int,
+    token: str = Form(...),
+    polzovatel=Depends(veb.tolko_admin),
+    conn: sqlite3.Connection = Depends(veb.baza),
+):
+    veb.proverit_formu(request, token)
+    # Себя не трогаем: разжаловав самого себя, администратор потеряет доступ
+    # к этой же странице, и вернуть роль будет некому.
+    if user_id == polzovatel["id"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "нельзя сменить роль самому себе")
+    est = conn.execute(
+        "SELECT role FROM users WHERE id = ? AND company_id = ?",
+        (user_id, polzovatel["company_id"]),
+    ).fetchone()
+    if est is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "сотрудник не найден")
+    novaya = "operator" if est["role"] == "admin" else "admin"
+    with db.transaction(conn):
+        conn.execute(
+            "UPDATE users SET role = ? WHERE id = ? AND company_id = ?",
+            (novaya, user_id, polzovatel["company_id"]),
+        )
+        db.log(
+            conn,
+            polzovatel["company_id"],
+            polzovatel["id"],
+            "смена роли",
+            f"{user_id} -> {auth.ROLES[novaya]}",
+        )
+    return veb.tuda("/sotrudniki")
+
+
 @router.post("/sotrudniki/{user_id}/parol")
 def smenit_parol(
     request: Request,

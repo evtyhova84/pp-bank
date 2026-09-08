@@ -12,7 +12,15 @@
   <tr class="{% if not u.active %}vyklyuchen{% endif %}">
     <td>{{ u.login }}</td>
     <td>{{ u.full_name }}</td>
-    <td>{{ 'администратор' if u.role == 'admin' else 'оператор' }}</td>
+    <td>
+      {{ 'администратор' if u.role == 'admin' else 'оператор' }}
+      {% if u.id != polzovatel.id %}
+      <form method="post" action="/sotrudniki/{{ u.id }}/rol" class="vryad">
+        <input type="hidden" name="token" value="{{ token }}">
+        <button class="prosto">{{ 'сделать оператором' if u.role == 'admin' else 'сделать администратором' }}</button>
+      </form>
+      {% endif %}
+    </td>
     <td>{{ 'работает' if u.active else 'отключён' }}</td>
     <td>
       <form method="post" action="/sotrudniki/{{ u.id }}/parol" class="vryad">

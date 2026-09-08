@@ -270,6 +270,46 @@ class SkvoznoyTest(unittest.TestCase):
         )
         self.assertEqual(self.client.get("/sotrudniki").status_code, 403)
 
+    def _id_polzovatelya(self, login: str) -> int:
+        conn = db.connect()
+        try:
+            return conn.execute("SELECT id FROM users WHERE login = ?", (login,)).fetchone()["id"]
+        finally:
+            conn.close()
+
+    def test_03a_rol_menyaetsya_tuda_i_obratno(self):
+        """Оператора повышают до администратора и возвращают обратно.
+
+        Роль читается из базы на каждый запрос, поэтому она действует сразу —
+        сотруднику не нужно перезаходить.
+        """
+        petrov = self._id_polzovatelya("petrov")
+        self.voyti()
+        self.client.post(f"/sotrudniki/{petrov}/rol", data={"token": self.token("/sotrudniki")})
+        self.voyti("petrov")
+        self.assertEqual(self.client.get("/sotrudniki").status_code, 200)
+
+        self.voyti()
+        self.client.post(f"/sotrudniki/{petrov}/rol", data={"token": self.token("/sotrudniki")})
+        self.voyti("petrov")
+        self.assertEqual(self.client.get("/sotrudniki").status_code, 403)
+
+    def test_03b_sebe_rol_ne_smenit(self):
+        """Себя разжаловать нельзя: вернуть роль было бы некому."""
+        self.voyti()
+        ya = self._id_polzovatelya("admin")
+        otvet = self.client.post(
+            f"/sotrudniki/{ya}/rol", data={"token": self.token("/sotrudniki")}
+        )
+        self.assertEqual(otvet.status_code, 400)
+
+    def test_03v_operator_rol_ne_menyaet(self):
+        """Смена роли — дело администратора, оператору маршрут закрыт."""
+        self.voyti("petrov")
+        self.assertEqual(
+            self.client.post("/sotrudniki/1/rol", data={"token": "x"}).status_code, 403
+        )
+
     def test_04_forma_bez_metki_otvergaetsya(self):
         self.voyti()
         otvet = self.client.post(
