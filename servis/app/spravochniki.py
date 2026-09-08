@@ -160,7 +160,7 @@ def _sobrat(forma, polya) -> dict:
 async def dobavit_platelshchika(
     request: Request,
     token: str = Form(...),
-    polzovatel=Depends(veb.tolko_admin),
+    polzovatel=Depends(veb.pravit_spravochniki),
     conn: sqlite3.Connection = Depends(veb.baza),
 ):
     """Новая организация вместе с её первым расчётным счётом."""
@@ -244,7 +244,7 @@ async def dobavit_schet(
     request: Request,
     payer_id: int,
     token: str = Form(...),
-    polzovatel=Depends(veb.tolko_admin),
+    polzovatel=Depends(veb.pravit_spravochniki),
     conn: sqlite3.Connection = Depends(veb.baza),
 ):
     """Ещё один расчётный счёт у существующей организации."""
@@ -291,7 +291,7 @@ async def iz_platezhki_forma(
     request: Request,
     token: str = Form(...),
     fayl: UploadFile = File(...),
-    polzovatel=Depends(veb.tolko_admin),
+    polzovatel=Depends(veb.pravit_spravochniki),
     conn: sqlite3.Connection = Depends(veb.baza),
 ):
     """Прочитать реквизиты из старой платёжки и подставить их в форму.
@@ -368,7 +368,7 @@ async def iz_platezhki_forma(
 async def drugaya_storona(
     request: Request,
     token: str = Form(...),
-    polzovatel=Depends(veb.tolko_admin),
+    polzovatel=Depends(veb.pravit_spravochniki),
     conn: sqlite3.Connection = Depends(veb.baza),
 ):
     """Человек сказал: наша организация — вторая сторона платёжки.
@@ -404,7 +404,7 @@ def perekluchit_platelshchika(
     request: Request,
     payer_id: int,
     token: str = Form(...),
-    polzovatel=Depends(veb.tolko_admin),
+    polzovatel=Depends(veb.pravit_spravochniki),
     conn: sqlite3.Connection = Depends(veb.baza),
 ):
     veb.proverit_formu(request, token)
@@ -421,7 +421,7 @@ def perekluchit_schet(
     request: Request,
     schet_id: int,
     token: str = Form(...),
-    polzovatel=Depends(veb.tolko_admin),
+    polzovatel=Depends(veb.pravit_spravochniki),
     conn: sqlite3.Connection = Depends(veb.baza),
 ):
     veb.proverit_formu(request, token)
@@ -467,7 +467,8 @@ def sotrudniki(
         (polzovatel["company_id"],),
     ).fetchall()
     return veb.stranitsa(
-        request, "sotrudniki.html", polzovatel=polzovatel, spisok=spisok, oshibka=None
+        request, "sotrudniki.html", polzovatel=polzovatel, spisok=spisok,
+        roli=auth.ROLES, oshibka=None
     )
 
 
@@ -493,7 +494,8 @@ def dobavit_sotrudnika(
             (polzovatel["company_id"],),
         ).fetchall()
         return veb.stranitsa(
-            request, "sotrudniki.html", polzovatel=polzovatel, spisok=spisok, oshibka=str(exc)
+            request, "sotrudniki.html", polzovatel=polzovatel, spisok=spisok,
+            roli=auth.ROLES, oshibka=str(exc)
         )
     return veb.tuda("/sotrudniki")
 
@@ -528,6 +530,7 @@ def smenit_rol(
     request: Request,
     user_id: int,
     token: str = Form(...),
+    rol: str = Form(...),
     polzovatel=Depends(veb.tolko_admin),
     conn: sqlite3.Connection = Depends(veb.baza),
 ):
@@ -536,13 +539,15 @@ def smenit_rol(
     # к этой же странице, и вернуть роль будет некому.
     if user_id == polzovatel["id"]:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "нельзя сменить роль самому себе")
+    novaya = rol.strip()
+    if novaya not in auth.ROLES:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "неизвестная роль")
     est = conn.execute(
         "SELECT role FROM users WHERE id = ? AND company_id = ?",
         (user_id, polzovatel["company_id"]),
     ).fetchone()
     if est is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "сотрудник не найден")
-    novaya = "operator" if est["role"] == "admin" else "admin"
     with db.transaction(conn):
         conn.execute(
             "UPDATE users SET role = ? WHERE id = ? AND company_id = ?",

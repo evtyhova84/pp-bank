@@ -15,6 +15,9 @@ from . import auth, db
 
 BASE = Path(__file__).resolve().parent
 shablony = Jinja2Templates(directory=str(BASE / "templates"))
+# Названия ролей нужны в шапке на каждой странице — держим их в одном месте
+shablony.env.globals["ROLI"] = auth.ROLES
+shablony.env.globals["ROLI_SPRAVOCHNIKOV"] = auth.ROLI_SPRAVOCHNIKOV
 
 SEKRET_FAYL = db.DATA_DIR / "sekret.key"
 
@@ -70,6 +73,19 @@ def tekushchiy(request: Request, conn: sqlite3.Connection = Depends(baza)) -> sq
 def tolko_admin(polzovatel: sqlite3.Row = Depends(tekushchiy)) -> sqlite3.Row:
     if polzovatel["role"] != "admin":
         raise HTTPException(status.HTTP_403_FORBIDDEN, "нужны права администратора")
+    return polzovatel
+
+
+def pravit_spravochniki(polzovatel: sqlite3.Row = Depends(tekushchiy)) -> sqlite3.Row:
+    """Плательщики, их счета и получатели: бухгалтер и администратор.
+
+    Смотреть справочники может любой вошедший — это видно по маршрутам GET.
+    Здесь речь только про изменения: реквизиты задают, куда уходят деньги.
+    """
+    if polzovatel["role"] not in auth.ROLI_SPRAVOCHNIKOV:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, "нужны права бухгалтера или администратора"
+        )
     return polzovatel
 
 

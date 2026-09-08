@@ -2,8 +2,9 @@
 {% block zagolovok %}Сотрудники{% endblock %}
 {% block soderzhimoe %}
 <h1>Сотрудники</h1>
-<p class="tiho">Оператор загружает счета и формирует файл. Администратор — то же самое
-плюс справочники и сотрудники.</p>
+<p class="tiho">Оператор загружает счета и формирует файл. Бухгалтер — то же самое
+плюс справочники: плательщики, их счета, получатели. Администратор — всё это
+и сотрудники с паролями.</p>
 
 <table>
   <thead><tr><th>Логин</th><th>Имя</th><th>Роль</th><th>Состояние</th><th>Пароль</th><th></th></tr></thead>
@@ -13,11 +14,17 @@
     <td>{{ u.login }}</td>
     <td>{{ u.full_name }}</td>
     <td>
-      {{ 'администратор' if u.role == 'admin' else 'оператор' }}
-      {% if u.id != polzovatel.id %}
+      {% if u.id == polzovatel.id %}
+      {{ roli.get(u.role, u.role) }}
+      {% else %}
       <form method="post" action="/sotrudniki/{{ u.id }}/rol" class="vryad">
         <input type="hidden" name="token" value="{{ token }}">
-        <button class="prosto">{{ 'сделать оператором' if u.role == 'admin' else 'сделать администратором' }}</button>
+        <select name="rol">
+          {% for znachenie, nazvanie in roli.items() %}
+          <option value="{{ znachenie }}" {% if u.role == znachenie %}selected{% endif %}>{{ nazvanie|lower }}</option>
+          {% endfor %}
+        </select>
+        <button class="prosto">сменить</button>
       </form>
       {% endif %}
     </td>
@@ -51,8 +58,9 @@
   <label>Пароль<input name="parol" type="password" required minlength="8"></label>
   <label>Роль
     <select name="rol">
-      <option value="operator">оператор</option>
-      <option value="admin">администратор</option>
+      {% for znachenie, nazvanie in roli.items() %}
+      <option value="{{ znachenie }}">{{ nazvanie|lower }}</option>
+      {% endfor %}
     </select>
   </label>
   <div class="knopki"><button type="submit">Добавить</button></div>

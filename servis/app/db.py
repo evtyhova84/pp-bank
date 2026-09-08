@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS users (
     login         TEXT    NOT NULL UNIQUE,
     password_hash TEXT    NOT NULL,
     full_name     TEXT    NOT NULL DEFAULT '',
-    -- operator: грузит счета и формирует файл; admin: плюс справочники и люди
+    -- operator: грузит счета и формирует файл; buhgalter: плюс справочники
+    -- (плательщики, их счета, получатели); admin: плюс сотрудники и пароли
     role          TEXT    NOT NULL DEFAULT 'operator',
     active        INTEGER NOT NULL DEFAULT 1,
     created_at    TEXT    NOT NULL

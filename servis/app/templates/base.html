@@ -18,7 +18,7 @@
     <a href="/zhurnal">Журнал</a>
   </nav>
   <div class="kto">
-    <span title="{{ 'Администратор' if polzovatel.role == 'admin' else 'Оператор' }}">{{ polzovatel.full_name or polzovatel.login }}</span>
+    <span title="{{ ROLI.get(polzovatel.role, polzovatel.role) }}">{{ polzovatel.full_name or polzovatel.login }}</span>
     <form method="post" action="/vyhod"><button class="prosto">выйти</button></form>
   </div>
 </header>

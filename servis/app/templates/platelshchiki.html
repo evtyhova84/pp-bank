@@ -14,7 +14,7 @@
       <span class="tiho">· ИНН {{ p.inn }}{% if p.kpp %} · КПП {{ p.kpp }}{% endif %}
       · код {{ p.code }}</span>
     </div>
-    {% if polzovatel.role == 'admin' %}
+    {% if polzovatel.role in ROLI_SPRAVOCHNIKOV %}
     <form method="post" action="/platelshchiki/{{ p.id }}/perekluchit">
       <input type="hidden" name="token" value="{{ token }}">
       <button class="prosto">{{ 'отключить' if p.active else 'включить' }}</button>
@@ -32,7 +32,7 @@
         <td>{{ s.bank_name }}<div class="tiho">БИК {{ s.bic }}</div></td>
         <td class="chislo">{{ s.numbering_start }}</td>
         <td>
-          {% if polzovatel.role == 'admin' %}
+          {% if polzovatel.role in ROLI_SPRAVOCHNIKOV %}
           <form method="post" action="/scheta/{{ s.id }}/perekluchit">
             <input type="hidden" name="token" value="{{ token }}">
             <button class="prosto">{{ 'отключить' if s.active else 'включить' }}</button>
@@ -46,7 +46,7 @@
     </tbody>
   </table>
 
-  {% if polzovatel.role == 'admin' %}
+  {% if polzovatel.role in ROLI_SPRAVOCHNIKOV %}
   <details>
     <summary class="tiho">добавить ещё один расчётный счёт</summary>
     <form method="post" action="/platelshchiki/{{ p.id }}/schet" class="forma polya">
@@ -65,7 +65,7 @@
 <p class="tiho">Пока ни одного плательщика.</p>
 {% endfor %}
 
-{% if polzovatel.role == 'admin' %}
+{% if polzovatel.role in ROLI_SPRAVOCHNIKOV %}
 <h2 id="dobavit">Добавить организацию</h2>
 
 <form method="post" action="/platelshchiki/iz-platezhki" enctype="multipart/form-data" class="vryad">

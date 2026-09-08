@@ -76,7 +76,7 @@
       {% elif pokupatel.payer %}
       Плательщик «{{ pokupatel.payer.name }}» заведён, но у него нет ни одного
       включённого расчётного счёта — <a href="/platelshchiki">добавьте счёт</a>.
-      {% elif polzovatel.role == 'admin' %}
+      {% elif polzovatel.role in ROLI_SPRAVOCHNIKOV %}
       Такого плательщика в справочнике ещё нет: заведите его — наименование, ИНН и КПП
       уже заполнены, останется дописать банковские реквизиты.
       {% else %}
@@ -99,7 +99,7 @@
     {% endif %}
     <button type="submit">Переназначить пачку на {{ pokupatel.payer.name }}</button>
   </form>
-  {% elif not pokupatel.payer and polzovatel.role == 'admin' %}
+  {% elif not pokupatel.payer and polzovatel.role in ROLI_SPRAVOCHNIKOV %}
   <a class="knopka" href="/platelshchiki?inn={{ pokupatel.inn|urlencode }}&kpp={{ pokupatel.kpp|urlencode }}&name={{ pokupatel.name|urlencode }}&pachka={{ pachka.id }}#dobavit">Завести {{ pokupatel.name or 'плательщика' }}</a>
   {% endif %}
 </div>

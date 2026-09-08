@@ -694,7 +694,7 @@ SQLite, файл `servis/dannye/servis.db`, режим WAL, внешние кл�
 | Таблица | Что хранит |
 |---|---|
 | `companies` | организация-арендатор |
-| `users` | пользователи, роль `operator` / `admin`, scrypt-хеш пароля |
+| `users` | пользователи, роль `operator` / `buhgalter` / `admin`, scrypt-хеш пароля |
 | `sessions` | сессии (в базе, не в подписанной куке) |
 | `payers` | плательщик: код, наименование, ИНН, КПП |
 | `payer_accounts` | расчётный счёт плательщика: метка, реквизиты банка, `numbering_start`, профиль банка |
@@ -742,13 +742,15 @@ SQLite, файл `servis/dannye/servis.db`, режим WAL, внешние кл�
 | `POST /pachki/{id}/vygruzka` | сформировать файл для банка | вход |
 | `GET /pachki/{id}/fayl` | скачать `1c_to_kl.txt` | вход |
 | `GET /pachki/{id}/dokument/{doc}/ishodnik` | показать исходный счёт | вход |
-| `GET/POST /platelshchiki` | справочник плательщиков | админ |
-| `POST /platelshchiki/{id}/schet` | добавить расчётный счёт | админ |
-| `POST /platelshchiki/iz-platezhki` | прочитать реквизиты из документа | админ |
-| `POST /platelshchiki/storona` | «это не мы — взять вторую сторону» | админ |
-| `POST /platelshchiki/{id}/perekluchit`, `POST /scheta/{id}/perekluchit` | включить/отключить | админ |
+| `GET /platelshchiki` | справочник плательщиков | вход |
+| `POST /platelshchiki` | завести плательщика | бухгалтер |
+| `POST /platelshchiki/{id}/schet` | добавить расчётный счёт | бухгалтер |
+| `POST /platelshchiki/iz-platezhki` | прочитать реквизиты из документа | бухгалтер |
+| `POST /platelshchiki/storona` | «это не мы — взять вторую сторону» | бухгалтер |
+| `POST /platelshchiki/{id}/perekluchit`, `POST /scheta/{id}/perekluchit` | включить/отключить | бухгалтер |
 | `GET /poluchateli` | справочник получателей | вход |
 | `GET/POST /sotrudniki` | сотрудники, пароли, роли | админ |
+| `POST /sotrudniki/{id}/rol` | сменить роль сотрудника | админ |
 | `GET /zhurnal` | журнал действий | админ |
 
 Все POST-переходы отвечают 303 See Other, чтобы браузер не повторял отправку

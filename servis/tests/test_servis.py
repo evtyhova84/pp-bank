@@ -277,20 +277,27 @@ class SkvoznoyTest(unittest.TestCase):
         finally:
             conn.close()
 
+    def _dat_rol(self, login: str, rol: str) -> None:
+        """От имени администратора выдать сотруднику роль."""
+        self.voyti()
+        otvet = self.client.post(
+            f"/sotrudniki/{self._id_polzovatelya(login)}/rol",
+            data={"token": self.token("/sotrudniki"), "rol": rol},
+            follow_redirects=False,
+        )
+        self.assertEqual(otvet.status_code, 303, otvet.text[:300])
+
     def test_03a_rol_menyaetsya_tuda_i_obratno(self):
         """Оператора повышают до администратора и возвращают обратно.
 
         Роль читается из базы на каждый запрос, поэтому она действует сразу —
         сотруднику не нужно перезаходить.
         """
-        petrov = self._id_polzovatelya("petrov")
-        self.voyti()
-        self.client.post(f"/sotrudniki/{petrov}/rol", data={"token": self.token("/sotrudniki")})
+        self._dat_rol("petrov", "admin")
         self.voyti("petrov")
         self.assertEqual(self.client.get("/sotrudniki").status_code, 200)
 
-        self.voyti()
-        self.client.post(f"/sotrudniki/{petrov}/rol", data={"token": self.token("/sotrudniki")})
+        self._dat_rol("petrov", "operator")
         self.voyti("petrov")
         self.assertEqual(self.client.get("/sotrudniki").status_code, 403)
 
@@ -299,7 +306,40 @@ class SkvoznoyTest(unittest.TestCase):
         self.voyti()
         ya = self._id_polzovatelya("admin")
         otvet = self.client.post(
-            f"/sotrudniki/{ya}/rol", data={"token": self.token("/sotrudniki")}
+            f"/sotrudniki/{ya}/rol",
+            data={"token": self.token("/sotrudniki"), "rol": "operator"},
+        )
+        self.assertEqual(otvet.status_code, 400)
+
+    def test_03g_buhgalter_pravit_spravochniki_no_ne_lyudey(self):
+        """Бухгалтеру открыты плательщики, но не сотрудники и не пароли."""
+        self._dat_rol("petrov", "buhgalter")
+        try:
+            self.voyti("petrov")
+            otvet = self.client.post(
+                "/platelshchiki",
+                data={
+                    **PLATELSHCHIK,
+                    "code": "buhtest",
+                    "token": self.token("/platelshchiki"),
+                },
+                follow_redirects=False,
+            )
+            self.assertEqual(otvet.status_code, 303, otvet.text[:300])
+            # а люди и пароли остаются за администратором
+            self.assertEqual(self.client.get("/sotrudniki").status_code, 403)
+            self.assertEqual(
+                self.client.post("/sotrudniki/1/parol", data={"token": "x"}).status_code, 403
+            )
+        finally:
+            self._dat_rol("petrov", "operator")
+
+    def test_03d_neizvestnaya_rol_ne_prinimaetsya(self):
+        """Роль приходит формой, поэтому проверяется по списку."""
+        self.voyti()
+        otvet = self.client.post(
+            f"/sotrudniki/{self._id_polzovatelya('petrov')}/rol",
+            data={"token": self.token("/sotrudniki"), "rol": "korol"},
         )
         self.assertEqual(otvet.status_code, 400)
 
